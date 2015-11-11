@@ -20,6 +20,12 @@ static unsigned char *program_break = heaps;
 static Header base; /* empty list to get started */
 static Header *freep = NULL; /* start of free list */
 
+/* 
+ * sbrk checks whether the 
+ * number of bytes can fit
+ * into the heap or not    
+ *
+ * */
 static void *sbrk(unsigned int nbytes)
 {
 	if (program_break + nbytes >= heaps
@@ -31,14 +37,19 @@ static void *sbrk(unsigned int nbytes)
 	return (void *) - 1;
 }
 
+/* malloc will allocate memory */
+
 void *malloc(unsigned int nbytes)
 {
 	Header *p, *prevp;
 	unsigned int nunits;
 	void *cp;
 
+	/* number of units */
 	nunits = (nbytes + sizeof(Header) - 1) / sizeof(Header) + 1;
 
+	/* initialization of the base position 
+	 * set when malloc is called first time */
 	if ((prevp = freep) == NULL) {
 		base.s.ptr = freep = prevp = &base;
 		base.s.size = 0;
