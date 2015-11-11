@@ -1,5 +1,7 @@
+extern void print_str(const char *);
+
 void USART2_handler(void)
 {
-	while (1);
+	print_str("USART2 interrupt!!\n");
+	return;
 }
-

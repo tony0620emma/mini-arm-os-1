@@ -36,7 +36,7 @@ void usart_init(void)
 	*(USART2_CR1) = 0x0000000C; // Tx Enable, Rx Enable
 	*(USART2_CR2) = 0x00000000;
 	*(USART2_CR3) = 0x00000000;
-	*(USART2_CR1) |= 0x2000;    // USART Enable
+	*(USART2_CR1) |= 0x2020;    // USART Enable, RXNE Enable
 }
 
 void print_str(const char *str)
@@ -82,13 +82,14 @@ void command_detect(char *str, size_t index)
 			print_str("help only need one argument!\n");
 		else
 			print_str("This is a help command\n");
-	}
-	else if (strcmp("fibonacci", str)) {
+	} else if (strcmp("fibonacci", str)) {
 		print_str("Calculating fibonacci sequence ...\n");
 		if (thread_create((void*) (fibonacci), (void*)(15)) == -1)
 			print_str("Failed to create fib thread...QQ\n");
 		else
 			print_str("Create fibonacci sequence successfully!!\n");
+	} else {
+		print_str("Command not found\n");
 	}
 	/* we need to flush the token */
 	strtok_flush();
