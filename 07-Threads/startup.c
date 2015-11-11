@@ -25,6 +25,9 @@
 /* main program entry point */
 extern void main(void);
 
+/* For USART2 interrupt handler */
+extern void USART2_handler(void);
+
 /* start address for the initialization values of the .data section.
  * defined in linker script */
 extern uint32_t _sidata;
@@ -85,7 +88,8 @@ uint32_t *isr_vectors[] = {
 	[0x06] = (uint32_t *) usagefault_handler,	/* usage fault handler */
 	[0x0B] = (uint32_t *) svc_handler,		/* svc handler */
 	[0x0E] = (uint32_t *) pendsv_handler,		/* pendsv handler */
-	[0x0F] = (uint32_t *) systick_handler		/* systick handler */
+	[0x0F] = (uint32_t *) systick_handler,		/* systick handler */
+	[0x36] = (uint32_t *) USART2_handler		/* USART2 handler */
 };
 
 void rcc_clock_init(void)
