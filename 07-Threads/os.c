@@ -39,7 +39,7 @@ void usart_init(void)
 	*(USART2_CR1) |= 0x2020;    // USART Enable, RXNE Interrupt Enable
 
 	/* NVIC Interrupt Set Enable, USART2 -> no.38 */
-	*(NVIC_ISE1) |= 0x0040;
+	*(NVIC_ISE1) = 0x00000040;
 }
 
 void print_str(const char *str)
