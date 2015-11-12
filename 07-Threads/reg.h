@@ -53,4 +53,8 @@
 #define SYSTICK_VAL	((__REG) (SYSTICK + 0x08))
 #define SYSTICK_CALIB	((__REG) (SYSTICK + 0x0C))
 
+/* NVIC Memory Map */
+#define NVIC_ISE	((__REG_TYPE) 0xE000E100)
+#define NVIC_ISE1	((__REG) (NVIC_ISE + 0x04))
+
 #endif

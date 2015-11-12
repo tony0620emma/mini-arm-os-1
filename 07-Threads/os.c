@@ -36,7 +36,10 @@ void usart_init(void)
 	*(USART2_CR1) = 0x0000000C; // Tx Enable, Rx Enable
 	*(USART2_CR2) = 0x00000000;
 	*(USART2_CR3) = 0x00000000;
-	*(USART2_CR1) |= 0x2020;    // USART Enable, RXNE Enable
+	*(USART2_CR1) |= 0x2020;    // USART Enable, RXNE Interrupt Enable
+
+	/* NVIC Interrupt Set Enable, USART2 -> no.38 */
+	*(NVIC_ISE1) |= 0x0040;
 }
 
 void print_str(const char *str)
