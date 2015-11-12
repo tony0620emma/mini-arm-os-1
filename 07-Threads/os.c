@@ -59,15 +59,6 @@ void print_char(const char *str)
 	}
 }
 
-char recv_char(void)
-{
-	while (1) {
-		if ((*USART2_SR) & (USART_FLAG_RXNE)) {
-			return (*USART2_DR) & 0xff;
-		}
-	}
-}
-
 void clear_buffer(char *buffer, size_t index)
 {
 	int i;
