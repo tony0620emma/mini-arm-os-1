@@ -11,4 +11,5 @@ void USART2_handler(void)
 	str[1] = '\0';
 	print_str(str);
 	print_str("USART2 interrupt!!\n");
+	free(str);
 }
