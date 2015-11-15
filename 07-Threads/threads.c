@@ -10,7 +10,8 @@
 typedef struct {
 	void *stack;
 	void *orig_stack;
-	uint8_t in_use;
+	/* 0 -> no, 1 -> active, 2 -> sleep */
+	uint8_t state;
 } tcb_t;
 
 static tcb_t tasks[MAX_TASKS];
@@ -34,7 +35,7 @@ void __attribute__((naked)) pendsv_handler()
 		lastTask++;
 		if (lastTask == MAX_TASKS)
 			lastTask = 0;
-		if (tasks[lastTask].in_use) {
+		if (tasks[lastTask].state) {
 			/* Restore the new task's context and jump to the task */
 			asm volatile("mov r0, %0\n"
 			             "ldmia r0!, {r4-r11, lr}\n"
@@ -77,7 +78,7 @@ int thread_create(void (*run)(void *), void *userdata)
 	uint32_t *stack;
 
 	for (threadId = 0; threadId < MAX_TASKS; threadId++) {
-		if (tasks[threadId].in_use == 0)
+		if (tasks[threadId].state == 0)
 			break;
 	}
 
@@ -105,14 +106,14 @@ int thread_create(void (*run)(void *), void *userdata)
 
 	/* Construct the control block */
 	tasks[threadId].stack = stack;
-	tasks[threadId].in_use = 1;
+	tasks[threadId].state = 1;
 
 	return threadId;
 }
 
 void thread_kill(int thread_id)
 {
-	tasks[thread_id].in_use = 0;
+	tasks[thread_id].state = 0;
 
 	/* Free the stack */
 	free(tasks[thread_id].orig_stack);
@@ -132,4 +133,17 @@ void thread_self_terminal()
 
 	/* And now wait for death to kick in */
 	while (1);
+}
+
+void thread_wake(int thread_id)
+{
+	tasks[thread_id].state = 1;
+}
+
+void thread_sleep(int thread_id)
+{
+	tasks[thread_id].state = 2;
+	
+	/* find next task */
+	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
 }
