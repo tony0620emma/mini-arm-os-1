@@ -17,6 +17,7 @@ typedef struct {
 static tcb_t tasks[MAX_TASKS];
 static int lastTask;
 static int first = 1;
+static int task_num = 0;
 
 /* FIXME: Without naked attribute, GCC will corrupt r7 which is used for stack
  * pointer. If so, after restoring the tasks' context, we will get wrong stack
@@ -28,13 +29,22 @@ void __attribute__((naked)) pendsv_handler()
 	asm volatile("mrs   r0, psp\n"
 	             "stmdb r0!, {r4-r11, lr}\n"
 	             "mov   %0, r0\n"
-	             : "=r" (tasks[lastTask].stack));
+		     : "=r" (tasks[lastTask].stack));
 
-	/* Find a new task to run */
+	/* Run idle task if there is no other task */
+	if (task_num == 1) {
+		asm volatile("mov r0, %0\n"
+		             "ldmia r0!, {r4-r11, lr}\n"
+		             "msr psp, r0\n"
+		             "bx lr\n"
+		             : : "r" (tasks[0].stack));
+	}
+
+	/* Find a new task to run, except idle task */
 	while (1) {
 		lastTask++;
 		if (lastTask == MAX_TASKS)
-			lastTask = 0;
+			lastTask = 1;
 		if (tasks[lastTask].state) {
 			/* Restore the new task's context and jump to the task */
 			asm volatile("mov r0, %0\n"
@@ -53,7 +63,7 @@ void systick_handler()
 
 void thread_start()
 {
-	lastTask = 0;
+	lastTask = 1; // reserve index 0 for idle task
 
 	/* Save kernel context */
 	asm volatile("mrs ip, psr\n"
@@ -107,6 +117,7 @@ int thread_create(void (*run)(void *), void *userdata)
 	/* Construct the control block */
 	tasks[threadId].stack = stack;
 	tasks[threadId].state = 1;
+	task_num++;
 
 	return threadId;
 }

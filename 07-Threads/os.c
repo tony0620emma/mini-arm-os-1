@@ -130,6 +130,12 @@ void shell(void *user)
 	}
 }
 
+void idle_task(void *userdata)
+{
+	while (1)
+		/* Do nothing */;
+}
+
 /* 72MHz */
 #define CPU_CLOCK_HZ 72000000
 
@@ -138,10 +144,12 @@ void shell(void *user)
 
 int main(void)
 {
-	const char *str1 = "Task_SHELL";
-
 	usart_init();
 
+	if (thread_create(idle_task, (void *) 0) == -1)
+		print_str("idle_task creation failed\r\n");
+
+	const char *str1 = "Task_SHELL";
 	if (thread_create(shell, (void *) str1) == -1)
 		print_str("SHELL creation failed\r\n");
 
