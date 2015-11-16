@@ -32,3 +32,8 @@ void USART2_handler(void)
 	if (waiting_task_id != -1)
 		thread_wake(waiting_task_id);
 }
+
+char get_input()
+{
+	return keyboard_buffer[--keyboard_buffer_index];
+}
