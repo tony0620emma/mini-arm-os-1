@@ -3,6 +3,8 @@
 #include "threads.h"
 #include "reg.h"
 
+#define MAX_KEYBOARD_BUFFER 5
+
 static char keyboard_buffer[MAX_KEYBOARD_BUFFER];
 static int  keyboard_buffer_index = 0;
 static int  waiting_task_id = -1;
