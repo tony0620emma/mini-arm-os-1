@@ -4,7 +4,7 @@
 #include "reg.h"
 
 #define MAX_KEYBOARD_BUFFER 5
-
+extern void print_str(const char *);
 static char keyboard_buffer[MAX_KEYBOARD_BUFFER];
 static int  keyboard_buffer_index = 0;
 static int  waiting_task_id = -1;
@@ -25,6 +25,7 @@ void USART2_handler(void)
 	 * prevent critical section from race condition
 	 */
 
+	print_str("In USART2 handler!!\n");
 	if (keyboard_buffer_index == MAX_KEYBOARD_BUFFER)
 		keyboard_buffer[keyboard_buffer_index - 1] = *(USART2_DR) & 0xff;
 	else

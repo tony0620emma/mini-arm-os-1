@@ -94,7 +94,12 @@ void shell(void *user)
 {
 	/* Get thread id and register to USART2 */
 	int shell_id = get_thread_id();
+	char *shell_str = malloc(10);
+	itoa(shell_id, shell_str);
 	USART2_attach(shell_id);
+	print_str("Shell ID : ");
+	print_str(shell_str);
+	print_str("\n");
 
 	/* Create buffer to store input */
 	char buffer[MAX_INPUT];
@@ -104,8 +109,9 @@ void shell(void *user)
 		print_str("tonyyanxuan:~$ ");
 		index = 0;
 		while (1) {
-			if (USART2_is_empty())
-				thread_sleep();
+			if (USART2_is_empty()) 
+				thread_sleep(shell_id);
+
 			buffer[index] = get_input();
 
 			/* detect "enter" hit or a new line character */
@@ -139,10 +145,29 @@ void shell(void *user)
 	}
 }
 
+static void delay(volatile int count)
+{
+	count *= 50000;
+	while (count--);
+}
+
+static void busy_loop(void *str)
+{
+	int id = get_thread_id();
+	char *id_str = malloc(10);
+	itoa(id, id_str);
+	while (1) {
+		//print_str(str);
+		//print_str(", thread ID = : ");
+		//print_str(id_str);
+		//print_str(" is Running...\n");
+		delay(1000);
+	}
+}
+
 void idle_task(void *userdata)
 {
-	while (1)
-		/* Do nothing */;
+	busy_loop(userdata);
 }
 
 /* 72MHz */
@@ -155,7 +180,8 @@ int main(void)
 {
 	usart_init();
 
-	if (thread_create(idle_task, (void *) 0) == -1)
+	const char *idle = "IDLE_TASK";
+	if (thread_create(idle_task, (void *) idle) == -1)
 		print_str("idle_task creation failed\r\n");
 
 	const char *str1 = "Task_SHELL";

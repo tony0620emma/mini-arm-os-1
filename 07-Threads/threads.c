@@ -16,8 +16,7 @@ typedef struct {
 
 static tcb_t tasks[MAX_TASKS];
 static int lastTask;
-static int first = 1;
-static int task_num = 0;
+static int active_task_num = 0;
 
 /* FIXME: Without naked attribute, GCC will corrupt r7 which is used for stack
  * pointer. If so, after restoring the tasks' context, we will get wrong stack
@@ -32,7 +31,7 @@ void __attribute__((naked)) pendsv_handler()
 		     : "=r" (tasks[lastTask].stack));
 
 	/* Run idle task if there is no other task */
-	if (task_num == 1) {
+	if (active_task_num == 1) {
 		asm volatile("mov r0, %0\n"
 		             "ldmia r0!, {r4-r11, lr}\n"
 		             "msr psp, r0\n"
@@ -40,18 +39,20 @@ void __attribute__((naked)) pendsv_handler()
 		             : : "r" (tasks[0].stack));
 	}
 
-	/* Find a new task to run, except idle task */
-	while (1) {
-		lastTask++;
-		if (lastTask == MAX_TASKS)
-			lastTask = 1;
-		if (tasks[lastTask].state) {
-			/* Restore the new task's context and jump to the task */
-			asm volatile("mov r0, %0\n"
-			             "ldmia r0!, {r4-r11, lr}\n"
-			             "msr psp, r0\n"
-			             "bx lr\n"
-			             : : "r" (tasks[lastTask].stack));
+	else {
+		/* Find a new task to run, except idle task */
+		while (1) {
+			lastTask++;
+			if (lastTask == MAX_TASKS)
+				lastTask = 1;
+			if (tasks[lastTask].state == 1) {
+				/* Restore the new task's context and jump to the task */
+				asm volatile("mov r0, %0\n"
+				             "ldmia r0!, {r4-r11, lr}\n"
+				             "msr psp, r0\n"
+				             "bx lr\n"
+				             : : "r" (tasks[lastTask].stack));
+			}
 		}
 	}
 }
@@ -102,10 +103,11 @@ int thread_create(void (*run)(void *), void *userdata)
 		return -1;
 
 	stack += STACK_SIZE - 32; /* End of stack, minus what we are about to push */
-	if (first) {
+
+	/* For thread_start(), reserve 0 for idle task */
+	if (threadId == 1) {
 		stack[8] = (unsigned int) run;
 		stack[9] = (unsigned int) userdata;
-		first = 0;
 	} else {
 		stack[8] = (unsigned int) THREAD_PSP;
 		stack[9] = (unsigned int) userdata;
@@ -117,13 +119,16 @@ int thread_create(void (*run)(void *), void *userdata)
 	/* Construct the control block */
 	tasks[threadId].stack = stack;
 	tasks[threadId].state = 1;
-	task_num++;
+	active_task_num++;
 
 	return threadId;
 }
 
 void thread_kill(int thread_id)
 {
+	if (tasks[thread_id].state == 1)
+		active_task_num--;
+
 	tasks[thread_id].state = 0;
 
 	/* Free the stack */
@@ -148,15 +153,19 @@ void thread_self_terminal()
 
 void thread_wake(int thread_id)
 {
+	if (tasks[thread_id].state == 2)
+		active_task_num++;
+		
 	tasks[thread_id].state = 1;
 	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
 }
 
-void thread_sleep()
+void thread_sleep(int thread_id)
 {
-	asm volatile("cpsid i\n");
-	tasks[lastTask].state = 2;
-	asm volatile("cpsie i\n");
+	if (tasks[thread_id].state == 1)
+		active_task_num--;
+
+	tasks[thread_id].state = 2;
 	
 	/* find next task */
 	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
