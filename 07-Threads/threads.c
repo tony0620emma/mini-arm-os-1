@@ -149,12 +149,23 @@ void thread_self_terminal()
 void thread_wake(int thread_id)
 {
 	tasks[thread_id].state = 1;
+	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
 }
 
-void thread_sleep(int thread_id)
+void thread_sleep()
 {
-	tasks[thread_id].state = 2;
+	asm volatile("cpsid i\n");
+	tasks[lastTask].state = 2;
+	asm volatile("cpsie i\n");
 	
 	/* find next task */
 	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
+}
+
+int get_thread_id()
+{
+	asm volatile("cpsid i\n");
+	int id = lastTask;
+	asm volatile("cpsie i\n");
+	return id;
 }

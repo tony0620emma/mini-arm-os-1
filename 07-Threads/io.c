@@ -37,5 +37,11 @@ void USART2_handler(void)
 
 char get_input()
 {
+	/* FIXME: critical section */
 	return keyboard_buffer[--keyboard_buffer_index];
+}
+
+int USART2_is_empty()
+{
+	return keyboard_buffer_index == 0 ? 1 : 0;
 }

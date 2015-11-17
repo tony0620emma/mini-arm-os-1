@@ -5,6 +5,7 @@
 #include "str.h"
 #include "type.h"
 #include "malloc.h"
+#include "io.h"
 
 /* FIXME: bad idea of input limitation */
 #define MAX_INPUT 50
@@ -91,13 +92,21 @@ void command_detect(char *str, size_t index)
 
 void shell(void *user)
 {
+	/* Get thread id and register to USART2 */
+	int shell_id = get_thread_id();
+	USART2_attach(shell_id);
+
+	/* Create buffer to store input */
 	char buffer[MAX_INPUT];
 	size_t index;
+
 	while (1) {
 		print_str("tonyyanxuan:~$ ");
 		index = 0;
 		while (1) {
-			buffer[index] = recv_char();
+			if (USART2_is_empty())
+				thread_sleep();
+			buffer[index] = get_input();
 
 			/* detect "enter" hit or a new line character */
 			if (buffer[index] == 13 || buffer[index] == '\n') {
