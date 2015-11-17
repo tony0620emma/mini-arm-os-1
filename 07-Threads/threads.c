@@ -32,6 +32,7 @@ void __attribute__((naked)) pendsv_handler()
 
 	/* Run idle task if there is no other task */
 	if (active_task_num == 1) {
+		lastTask = 0;
 		asm volatile("mov r0, %0\n"
 		             "ldmia r0!, {r4-r11, lr}\n"
 		             "msr psp, r0\n"
