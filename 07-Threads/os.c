@@ -109,7 +109,8 @@ void shell(void *user)
 		print_str("tonyyanxuan:~$ ");
 		index = 0;
 		while (1) {
-			while (USART2_is_empty())
+			/* Wait for input, it will sleep when buffer is empty */
+			if (USART2_is_empty())
 				thread_sleep(shell_id);
 
 			buffer[index] = get_input();
