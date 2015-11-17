@@ -25,7 +25,7 @@ void USART2_handler(void)
 	 * prevent critical section from race condition
 	 */
 
-	print_str("In USART2 handler!!\n");
+// 	print_str("In USART2 handler!!\n");
 	if (keyboard_buffer_index == MAX_KEYBOARD_BUFFER)
 		keyboard_buffer[keyboard_buffer_index - 1] = *(USART2_DR) & 0xff;
 	else
