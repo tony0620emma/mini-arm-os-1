@@ -157,6 +157,7 @@ void thread_wake(int thread_id)
 		active_task_num++;
 		
 	tasks[thread_id].state = 1;
+	lastTask = thread_id - 1;
 	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
 }
 
