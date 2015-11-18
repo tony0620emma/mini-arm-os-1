@@ -175,7 +175,7 @@ void thread_sleep(int thread_id)
 	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
 }
 
-int get_thread_id()
+inline int get_thread_id()
 {
 	asm volatile("cpsid i\n");
 	int id = lastTask;
