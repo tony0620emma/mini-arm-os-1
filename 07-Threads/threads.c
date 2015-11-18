@@ -16,6 +16,7 @@ typedef struct {
 
 static tcb_t tasks[MAX_TASKS];
 static int lastTask;
+static int first = 1;
 static int active_task_num = 0;
 
 /* FIXME: Without naked attribute, GCC will corrupt r7 which is used for stack
@@ -106,7 +107,8 @@ int thread_create(void (*run)(void *), void *userdata)
 	stack += STACK_SIZE - 32; /* End of stack, minus what we are about to push */
 
 	/* For thread_start(), reserve 0 for idle task */
-	if (threadId == 1) {
+	if (threadId == 1 && first == 1) {
+		first = 0;
 		stack[8] = (unsigned int) run;
 		stack[9] = (unsigned int) userdata;
 	} else {
