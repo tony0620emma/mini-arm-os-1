@@ -2,10 +2,12 @@
 #define __THREADS_H__
 
 /* Thread Control Block */
-typedef struct {
+typedef struct __tcb {
 	void *stack;
 	void *orig_stack;
 	uint8_t state;
+	uint8_t priority;
+	struct __tcb *next;
 } tcb_t;
 
 enum {

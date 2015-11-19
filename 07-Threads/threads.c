@@ -114,6 +114,7 @@ int thread_create(void (*run)(void *), void *userdata)
 	/* Construct the control block */
 	tasks[threadId].stack = stack;
 	tasks[threadId].state = THREAD_ACTIVE;
+	tasks[threadId].priority = 0;
 	active_task_num++;
 
 	return threadId;
@@ -125,6 +126,7 @@ void thread_kill(int thread_id)
 		active_task_num--;
 
 	tasks[thread_id].state = THREAD_NONE;
+	tasks[thread_id].priority = 0;
 
 	/* Free the stack */
 	free(tasks[thread_id].orig_stack);
@@ -165,6 +167,12 @@ void thread_sleep(int thread_id)
 	
 	/* find next task */
 	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
+}
+
+void thread_set_priority(int thread_id, int priority)
+{
+	if (tasks[thread_id].state != THREAD_NONE)
+		tasks[thread_id].priority = priority;
 }
 
 inline int get_thread_id()
