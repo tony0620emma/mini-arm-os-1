@@ -6,14 +6,6 @@
 
 #define THREAD_PSP	0xFFFFFFFD
 
-/* Thread Control Block */
-typedef struct {
-	void *stack;
-	void *orig_stack;
-	/* 0 -> no, 1 -> active, 2 -> sleep */
-	uint8_t state;
-} tcb_t;
-
 static tcb_t tasks[MAX_TASKS];
 static int lastTask;
 static int first = 1;
@@ -47,7 +39,7 @@ void __attribute__((naked)) pendsv_handler()
 			lastTask++;
 			if (lastTask == MAX_TASKS)
 				lastTask = 1;
-			if (tasks[lastTask].state == 1) {
+			if (tasks[lastTask].state == THREAD_ACTIVE) {
 				/* Restore the new task's context and jump to the task */
 				asm volatile("mov r0, %0\n"
 				             "ldmia r0!, {r4-r11, lr}\n"
@@ -91,7 +83,7 @@ int thread_create(void (*run)(void *), void *userdata)
 	uint32_t *stack;
 
 	for (threadId = 0; threadId < MAX_TASKS; threadId++) {
-		if (tasks[threadId].state == 0)
+		if (tasks[threadId].state == THREAD_NONE)
 			break;
 	}
 
@@ -121,7 +113,7 @@ int thread_create(void (*run)(void *), void *userdata)
 
 	/* Construct the control block */
 	tasks[threadId].stack = stack;
-	tasks[threadId].state = 1;
+	tasks[threadId].state = THREAD_ACTIVE;
 	active_task_num++;
 
 	return threadId;
@@ -129,10 +121,10 @@ int thread_create(void (*run)(void *), void *userdata)
 
 void thread_kill(int thread_id)
 {
-	if (tasks[thread_id].state == 1)
+	if (tasks[thread_id].state == THREAD_ACTIVE)
 		active_task_num--;
 
-	tasks[thread_id].state = 0;
+	tasks[thread_id].state = THREAD_NONE;
 
 	/* Free the stack */
 	free(tasks[thread_id].orig_stack);
@@ -156,20 +148,20 @@ void thread_self_terminal()
 
 void thread_wake(int thread_id)
 {
-	if (tasks[thread_id].state == 2)
+	if (tasks[thread_id].state == THREAD_SLEEP)
 		active_task_num++;
 		
-	tasks[thread_id].state = 1;
+	tasks[thread_id].state = THREAD_ACTIVE;
 	lastTask = thread_id - 1;
 	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
 }
 
 void thread_sleep(int thread_id)
 {
-	if (tasks[thread_id].state == 1)
+	if (tasks[thread_id].state == THREAD_ACTIVE)
 		active_task_num--;
 
-	tasks[thread_id].state = 2;
+	tasks[thread_id].state = THREAD_SLEEP;
 	
 	/* find next task */
 	*SCB_ICSR |= SCB_ICSR_PENDSVSET;
