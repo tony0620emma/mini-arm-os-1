@@ -16,6 +16,14 @@ enum {
 	THREAD_SLEEP
 };
 
+enum {
+	PRIO_HIGH,
+	PRIO_MID,
+	PRIO_LOW
+};
+
+#define PRIO_DEFAULT PRIO_LOW
+
 void thread_start();
 int thread_create(void (*run)(void*), void* userdata);
 void thread_kill(int thread_id);
