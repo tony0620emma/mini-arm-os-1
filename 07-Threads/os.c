@@ -43,23 +43,6 @@ void usart_init(void)
 	*(NVIC_ISE1) = 0x00000040;
 }
 
-void print_str(const char *str)
-{
-	while (*str) {
-		while (!(*(USART2_SR) & USART_FLAG_TXE));
-		*(USART2_DR) = (*str & 0xFF);
-		str++;
-	}
-}
-
-void print_char(const char *str) 
-{
-	if (*str) {
-		while (!(*(USART2_SR) & USART_FLAG_TXE));
-		*(USART2_DR) = (*str & 0xFF);
-	}
-}
-
 void clear_buffer(char *buffer, size_t index)
 {
 	int i;
@@ -79,7 +62,7 @@ void command_detect(char *str, size_t index)
 			print_str("This is a help command\n");
 	} else if (strcmp("fibonacci", str)) {
 		print_str("Calculating fibonacci sequence ...\n");
-		if (thread_create((void*) (fibonacci), (void*)(15)) == -1)
+		if (thread_create((void*) (fibonacci), (void*)(15), PRIO_DEFAULT) == -1)
 			print_str("Failed to create fib thread...QQ\n");
 		else
 			print_str("Create fibonacci sequence successfully!!\n");
@@ -154,19 +137,29 @@ static void delay(volatile int count)
 
 static void busy_loop(void *str)
 {
-	int id = get_thread_id();
-	char *id_str = malloc(10);
-	itoa(id, id_str);
 	while (1) {
-		//print_str(str);
-		//print_str(", thread ID = : ");
-		//print_str(id_str);
-		//print_str(" is Running...\n");
+		print_str(str);
+		print_str(": Running...\n");
 		delay(1000);
 	}
 }
 
 void idle_task(void *userdata)
+{
+	busy_loop(userdata);
+}
+
+void test1(void *userdata)
+{
+	busy_loop(userdata);
+}
+
+void test2(void *userdata)
+{
+	busy_loop(userdata);
+}
+
+void test3(void *userdata)
 {
 	busy_loop(userdata);
 }
@@ -181,14 +174,24 @@ int main(void)
 {
 	usart_init();
 
-	const char *idle = "IDLE_TASK";
-	if (thread_create(idle_task, (void *) idle) == -1)
+	const char *idle = "IDLE_TASK", *str1 = "Task High",
+	      *str2 = "Task Mid", *str3 = "Task Low";
+	if (thread_create(idle_task, (void *) idle, PRIO_DEFAULT) == -1)
 		print_str("idle_task creation failed\r\n");
 
-	const char *str1 = "Task_SHELL";
+	/* const char *str1 = "Task_SHELL";
 	if (thread_create(shell, (void *) str1) == -1)
 		print_str("SHELL creation failed\r\n");
+	*/
 
+	if (thread_create(test1, (void *) str1, 1) == -1)
+		print_str("Thread 1 creation failed\r\n");
+
+	if (thread_create(test2, (void *) str2, 2) == -1)
+		print_str("Thread 2 creation failed\r\n");
+
+	if (thread_create(test3, (void *) str3, 3) == -1)
+		print_str("Thread 3 creation failed\r\n");
 
 	/* SysTick configuration */
 	*SYSTICK_LOAD = (CPU_CLOCK_HZ / TICK_RATE_HZ) - 1UL;

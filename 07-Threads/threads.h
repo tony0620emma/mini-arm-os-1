@@ -25,7 +25,7 @@ enum {
 #define PRIO_DEFAULT PRIO_LOW
 
 void thread_start();
-int thread_create(void (*run)(void*), void* userdata);
+int thread_create(void (*run)(void*), void* userdata, int priority);
 void thread_kill(int thread_id);
 void thread_self_terminal();
 void thread_wake(int thread_id);

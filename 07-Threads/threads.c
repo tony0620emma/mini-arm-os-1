@@ -76,7 +76,7 @@ void thread_start()
 	             : : "r" (tasks[lastTask].stack));
 }
 
-int thread_create(void (*run)(void *), void *userdata)
+int thread_create(void (*run)(void *), void *userdata, int priority)
 {
 	/* Find a free thing */
 	int threadId = 0;
@@ -114,7 +114,9 @@ int thread_create(void (*run)(void *), void *userdata)
 	/* Construct the control block */
 	tasks[threadId].stack = stack;
 	tasks[threadId].state = THREAD_ACTIVE;
-	tasks[threadId].priority = 0;
+
+	/* Need to check priority */
+	tasks[threadId].priority = priority;
 	active_task_num++;
 
 	return threadId;
