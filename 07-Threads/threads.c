@@ -84,7 +84,7 @@ void thread_start()
 	             : : "r" (tasks[lastTask].stack));
 }
 
-static void task_insert(tcb_t *task, int priority)
+static inline void task_insert(tcb_t *task, int priority)
 {
 	if (!*(tasks_queue + priority)){
 		*(tasks_queue + priority) = *(tasks_cur + priority) = task;
@@ -99,6 +99,9 @@ int thread_create(void (*run)(void *), void *userdata, int priority)
 	/* Find a free thing */
 	int threadId = 0;
 	uint32_t *stack;
+
+	if (priority < 0 || priority > 4)
+		return -1;
 
 	for (threadId = 0; threadId < MAX_TASKS; threadId++) {
 		if (tasks[threadId].state == THREAD_NONE)
@@ -133,9 +136,6 @@ int thread_create(void (*run)(void *), void *userdata, int priority)
 	tasks[threadId].stack = stack;
 	tasks[threadId].state = THREAD_ACTIVE;
 	tasks[threadId].id    = threadId;
-
-	if (priority < 0 || priority > 4)
-		return -1;
 
 	tasks[threadId].priority = priority;
 	tasks[threadId].next     = 0;
