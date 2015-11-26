@@ -5,6 +5,7 @@
 typedef struct __tcb {
 	void *stack;
 	void *orig_stack;
+	uint8_t id;
 	uint8_t state;
 	uint8_t priority;
 	struct __tcb *next;
@@ -17,12 +18,12 @@ enum {
 };
 
 enum {
-	PRIO_HIGH,
+	PRIO_DEFAULT = 0,
+	PRIO_LOW,
 	PRIO_MID,
-	PRIO_LOW
+	PRIO_HIGH
 };
 
-#define PRIO_DEFAULT PRIO_LOW
 
 void thread_start();
 int thread_create(void (*run)(void*), void* userdata, int priority);

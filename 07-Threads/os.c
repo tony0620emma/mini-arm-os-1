@@ -62,7 +62,7 @@ void command_detect(char *str, size_t index)
 			print_str("This is a help command\n");
 	} else if (strcmp("fibonacci", str)) {
 		print_str("Calculating fibonacci sequence ...\n");
-		if (thread_create((void*) (fibonacci), (void*)(15), PRIO_DEFAULT) == -1)
+		if (thread_create((void*) (fibonacci), (void*)(15), PRIO_LOW) == -1)
 			print_str("Failed to create fib thread...QQ\n");
 		else
 			print_str("Create fibonacci sequence successfully!!\n");
@@ -184,13 +184,13 @@ int main(void)
 		print_str("SHELL creation failed\r\n");
 	*/
 
-	if (thread_create(test1, (void *) str1, 1) == -1)
+	if (thread_create(test1, (void *) str1, PRIO_HIGH) == -1)
 		print_str("Thread 1 creation failed\r\n");
 
-	if (thread_create(test2, (void *) str2, 2) == -1)
+	if (thread_create(test2, (void *) str2, PRIO_MID) == -1)
 		print_str("Thread 2 creation failed\r\n");
 
-	if (thread_create(test3, (void *) str3, 3) == -1)
+	if (thread_create(test3, (void *) str3, PRIO_LOW) == -1)
 		print_str("Thread 3 creation failed\r\n");
 
 	/* SysTick configuration */
